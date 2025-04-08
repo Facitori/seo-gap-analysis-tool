@@ -1,0 +1,22 @@
+# SEO-GAP-ANALYSIS/requirements.txt
+python-dotenv
+flask
+requests
+# beautifulsoup4 # Prüfen ob noch benötigt
+html2text # Prüfen ob noch benötigt
+pandas
+scikit-learn
+spacy>=3.0.0
+textblob
+openai>=1.0.0
+jinja2
+tqdm
+wordcloud
+matplotlib
+trafilatura
+tenacity
+pytest # <-- NEU
+pytest-mock # <-- NEU
+pytest
+pytest-mock
+pytest-cov

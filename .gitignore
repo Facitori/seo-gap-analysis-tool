@@ -1,0 +1,28 @@
+# Environment variables
+.env
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Virtual environment
+cleanenv/ # Oder der Name deines venv-Ordners
+
+# Output files (optional, aber oft sinnvoll)
+output/cache/
+# output/*.png # Wenn du die generierten Bilder nicht versionieren willst
+# output/*.csv
+# output/*.json # Außer config.json!
+# output/*.txt
+# output/*.html # Die Reports werden ja jedes Mal neu generiert
+
+# IDE/Editor specific
+.idea/
+.vscode/
+*.swp
+
+# OS specific
+.DS_Store
+Thumbs.db

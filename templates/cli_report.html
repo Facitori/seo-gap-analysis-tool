@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <title>SEO Gap Analysis für {{ query }}</title>
+    <style>
+        /* ... (CSS bleibt gleich) ... */
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>SEO Gap Analysis für "{{ query }}"</h1>
+        <div class="metadata">
+            <!-- ... (Metadaten bleiben gleich) ... -->
+        </div>
+
+        <!-- ... (Wortwolke, Top-Begriffe, Fehlende Begriffe, Entitäten, Cluster, Sentiment bleiben gleich) ... -->
+
+        <!-- NEU: Häufig gestellte Fragen (PAA) -->
+        {% if related_questions is defined and related_questions %}
+        <div class="section">
+            <h2>Häufig gestellte Fragen (People Also Ask)</h2>
+            <p>Diese Fragen werden von Nutzern häufig im Zusammenhang mit "{{ query }}" gestellt:</p>
+            <ul>
+            {% for question in related_questions %}
+                <li>{{ question }}</li>
+            {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
+
+        <!-- ... (Top-Begriffe pro URL, Empfehlungen, Warnungen bleiben gleich) ... -->
+
+    </div> <!-- /container -->
+</body>
+</html>

@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <title>Analyseergebnisse für "{{ query }}"</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background: #f9f9f9; }
+        h1 { color: #333; }
+        h2 { color: #34495e; margin-top: 25px; border-bottom: 1px solid #eee; padding-bottom: 5px;}
+        h3 { color: #7f8c8d; margin-top: 15px;}
+        .section { background: #fff; padding: 15px; margin-bottom: 20px; border-radius: 5px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px;}
+        th, td { padding: 10px; border-bottom: 1px solid #ddd; text-align: left; word-wrap: break-word; }
+        th { background: #ecf0f1; }
+        a { color: #2980b9; text-decoration: none; }
+        a:hover { text-decoration: underline; }
+        img { max-width: 100%; height: auto; border: 1px solid #eee; margin-top: 10px; border-radius: 4px;}
+        pre { background: #ecf0f1; padding: 10px; border-radius: 5px; white-space: pre-wrap; word-wrap: break-word; font-family: monospace; font-size: 0.9em;}
+        ul { list-style: disc; margin-left: 20px; padding-left: 5px;}
+        li { margin-bottom: 4px;}
+        .section.warnings { color: #c0392b; background: #fdedec; padding: 15px; border-radius: 5px; border: 1px solid #fadbd8; }
+        .section.warnings h2 { color: #c0392b; border-bottom: none;}
+        .section.warnings ul li { margin-bottom: 8px; }
+        .section.warnings code { background: #f5b7b1; padding: 2px 5px; border-radius: 3px; font-size: 0.9em; color: #78281f; white-space: normal;}
+        /* Debug Block Style kann entfernt werden, wenn der Block weg ist */
+        /* .debug-block { background-color: #fff3cd; border: 1px solid #ffeeba; color: #856404; } */
+        /* .debug-block h2 { color: #856404; border-bottom: 1px solid #ffeeba;} */
+        /* .debug-block pre { background: #fff9e6; } */
+    </style>
+</head>
+<body>
+    <h1>Analyseergebnisse für "{{ query }}"</h1>
+
+    <!-- DEBUGGING BLOCK WURDE HIER ENTFERNT -->
+
+    <!-- Wortwolke -->
+    {% if wordcloud_file %}
+    <div class="section">
+        <h2>Wortwolke</h2>
+        <img src="{{ url_for('serve_output', filename=wordcloud_file) }}" alt="Wortwolke für {{ query }}">
+    </div>
+    {% endif %}
+
+    <!-- Top-Begriffe -->
+    <div class="section">
+        <h2>Top-Begriffe (Gesamt)</h2>
+        {% if analysis_summary is mapping and analysis_summary.overall_top_terms_with_scores %}
+            <ul>
+            {% for term, score in analysis_summary.overall_top_terms_with_scores %}
+                <li>{{ term }} (TF-IDF: {{ "%.3f"|format(score) }})</li>
+            {% endfor %}
+            </ul>
+        {% else %}
+            <p>Keine Top-Begriffe verfügbar.</p>
+        {% endif %}
+    </div>
+
+    <!-- Fehlende Begriffe -->
+    {% if analysis_summary is mapping and analysis_summary.missing_terms %}
+    <div class="section">
+        <h2>Potenziell fehlende Begriffe im Referenztext</h2>
+        <ul>
+        {% for term in analysis_summary.missing_terms %}
+            <li>{{ term }}</li>
+        {% endfor %}
+        </ul>
+    </div>
+    {% endif %}
+
+    <!-- Erkannte Entitäten -->
+    {% if analysis_summary is mapping and analysis_summary.overall_entities %}
+    <div class="section">
+        <h2>Erkannte Entitäten (NER)</h2>
+         {% set has_entities = false %}
+         {% for label, entities in analysis_summary.overall_entities.items() %}
+             {% if entities %}
+                 {% set has_entities = true %}
+                 <h3>{{ label }}</h3>
+                 <table>
+                     <thead><tr><th>Entität</th><th>Häufigkeit</th></tr></thead>
+                     <tbody>
+                     {% for entity, count in entities %}
+                         <tr><td>{{ entity }}</td><td>{{ count }}</td></tr>
+                     {% endfor %}
+                     </tbody>
+                 </table>
+             {% endif %}
+         {% endfor %}
+         {% if not has_entities %}
+             <p>Keine relevanten Entitäten gefunden.</p>
+         {% endif %}
+    </div>
+    {% endif %}
+
+    <!-- Keyword-Cluster -->
+    {% if analysis_summary is mapping and analysis_summary.clusters %}
+    <div class="section">
+        <h2>Keyword-Cluster</h2>
+        {% for cluster_id, terms in analysis_summary.clusters.items() %}
+            <h3>Cluster {{ cluster_id }}</h3>
+            <ul>
+            {% for term in terms %}
+                <li>{{ term }}</li>
+            {% endfor %}
+            </ul>
+        {% else %}
+             <p>Keine Keyword-Cluster gefunden.</p>
+        {% endfor %}
+    </div>
+     {% endif %}
+
+    <!-- Sentiment-Analyse -->
+    {% if analysis_summary is mapping and analysis_summary.sentiment_by_url %}
+    <div class="section">
+        <h2>Sentiment-Analyse</h2>
+        {% if analysis_summary.overall_sentiment is not none %}
+             <p>Durchschnittliches Sentiment: <strong>{{ "%.2f"|format(analysis_summary.overall_sentiment) }}</strong> (-1 = negativ, 1 = positiv)</p>
+        {% endif %}
+        <table>
+            <thead><tr><th>URL</th><th>Sentiment Score</th></tr></thead>
+            <tbody>
+            {% for url, score in analysis_summary.sentiment_by_url.items() %}
+                <tr><td><a href="{{ url }}" target="_blank" title="{{ url }}">{{ url[:70] }}{% if url|length > 70 %}...{% endif %}</a></td><td>{{ "%.2f"|format(score) }}</td></tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% endif %}
+
+    <!-- Häufig gestellte Fragen -->
+    {% if related_questions is defined and related_questions %}
+    <div class="section">
+        <h2>Häufig gestellte Fragen (People Also Ask)</h2>
+        <ul>
+        {% for question in related_questions %}
+            <li>{{ question }}</li>
+        {% endfor %}
+        </ul>
+    </div>
+    {% endif %}
+
+    <!-- Top-Begriffe pro URL -->
+    {% if analysis_summary is mapping and analysis_summary.top_terms_by_url %}
+    <div class="section">
+        <h2>Top-Begriffe pro URL</h2>
+        {% for url, terms in analysis_summary.top_terms_by_url.items() %}
+            <h3><a href="{{ url }}" target="_blank" title="{{ url }}">{{ url[:70] }}{% if url|length > 70 %}...{% endif %}</a></h3>
+            {% if terms %}
+            <ul>
+            {% for term in terms %}
+                <li>{{ term }}</li>
+            {% endfor %}
+            </ul>
+            {% else %}
+            <p><small>Keine Top-Begriffe für diese URL.</small></p>
+            {% endif %}
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Optimierungsempfehlungen -->
+    {% if recommendations and "Fehler" not in recommendations and "Übersprungen" not in recommendations %}
+    <div class="section">
+        <h2>Optimierungsempfehlungen (KI-Generiert)</h2>
+        <pre>{{ recommendations }}</pre>
+    </div>
+    {% elif recommendations %}
+     <div class="section">
+        <h2>Optimierungsempfehlungen</h2>
+        <p><i>{{ recommendations }}</i></p>
+     </div>
+    {% endif %}
+
+    <!-- Warnungen (fehlgeschlagene URLs) -->
+    {% if failed_urls %}
+    <div class="section warnings">
+        <h2>Warnungen (Fehlgeschlagene URLs)</h2>
+        <p>Bei {{ failed_urls|length }} URLs gab es Probleme:</p>
+        <ul>
+        {% for url, reason in failed_urls %}
+            <li>
+                <a href="{{ url }}" target="_blank" title="{{ url }}">{{ url[:70] }}{% if url|length > 70 %}...{% endif %}</a>:
+                <code>{{ reason }}</code>
+            </li>
+        {% endfor %}
+        </ul>
+    </div>
+    {% endif %}
+
+    <div style="text-align: center; margin-top: 30px;">
+        <a href="{{ url_for('index') }}">Neue Analyse starten</a>
+    </div>
+
+</body>
+</html>

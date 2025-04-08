@@ -1,0 +1,8 @@
+{
+    "LANGUAGE": "de",
+    "RESULTS_COUNT": 10,
+    "OPENAI_MODEL": "gpt-4o-mini",
+    "SPACY_MODEL": "de_core_news_sm",
+    "MAX_CACHE_AGE_SECONDS": 604800,
+    "MIN_EXTRACT_LENGTH": 150
+}
